@@ -399,18 +399,22 @@
             // Powiadomienie o wyniku
             elements.status.textContent = `Wheelie: ${duration.toFixed(2)}s (${state.maxAngle.toFixed(1)}°)`;
             // Zapis do Supabase
-            supabase.from('wheelie_results').insert({
-                nickname: state.nickname,
-                angle: parseFloat(state.maxAngle.toFixed(1)),
-                duration: parseFloat(duration.toFixed(2)),
-                device: navigator.userAgent
-            }).then(({ error }) => {
-                if (error) {
-                    console.error("Błąd zapisu do Supabase:", error.message);
-                } else {
-                    console.log("Zapisano wynik w Supabase");
-                }
-            });
+            if (state.nickname) {
+                supabase.from('wheelie_results').insert({
+                    nickname: state.nickname,
+                    angle: parseFloat(state.maxAngle.toFixed(1)),
+                    duration: parseFloat(duration.toFixed(2)),
+                    device: navigator.userAgent
+                }).then(({ error }) => {
+                    if (error) {
+                        console.error("Błąd zapisu do Supabase:", error.message);
+                    } else {
+                        console.log("Zapisano wynik w Supabase");
+                    }
+                });
+            } else {
+                console.warn("Brak nicku – nie zapisano do Supabase");
+            }
         }
         
         // Aktualizacja historii
