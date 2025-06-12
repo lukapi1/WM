@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Wheelie Meter</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            text-align: center;
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        h1 {
+            color: #ff3b30;
+            margin-top: 10px;
+        }
+        
+        #angle-display {
+            font-size: 5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #ff3b30;
+        }
+        
+        #time-display {
+            font-size: 2.5rem;
+            margin: 10px 0;
+        }
+        
+        #status {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            min-height: 2rem;
+        }
+        
+        #gauge {
+            width: 100%;
+            height: 30px;
+            background: #333;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #gauge-fill {
+            height: 100%;
+            background: linear-gradient(to right, #ff3b30, #34c759);
+            width: 0%;
+            transition: width 0.1s;
+        }
+        
+        #gauge-marker {
+            position: absolute;
+            width: 3px;
+            height: 40px;
+            background: white;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        button {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            margin: 10px;
+            cursor: pointer;
+        }
+        
+        #history {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        
+        .warning {
+            color: #ffcc00;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div>
+            <h1>WHEELIE METER</h1>
+            <div id="angle-display">0°</div>
+            <div id="time-display">0.00s</div>
+            <div id="status">Gotowy do pomiaru</div>
+            
+            <div id="gauge">
+                <div id="gauge-fill"></div>
+                <div id="gauge-marker"></div>
+            </div>
+            
+            <button id="startBtn">START</button>
+        </div>
+        
+        <div>
+            <div id="history"></div>
+            <div class="warning">
+                Zabezpiecz telefon przed upadkiem! Używaj aplikacji z rozwagą.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Konfiguracja
+        const config = {
+            wheelieThreshold: 20, // minimalny kąt uznawany za wheelie (w stopniach)
+            dangerThreshold: 45,  // kąt uznawany za niebezpieczny
+            updateInterval: 100   // częstotliwość aktualizacji (ms)
+        };
+        
+        // Stan aplikacji
+        const state = {
+            isMeasuring: false,
+            isWheelie: false,
+            startTime: 0,
+            currentAngle: 0,
+            maxAngle: 0,
+            measurements: []
+        };
+        
+        // Elementy DOM
+        const elements = {
+            angleDisplay: document.getElementById('angle-display'),
+            timeDisplay: document.getElementById('time-display'),
+            status: document.getElementById('status'),
+            gaugeFill: document.getElementById('gauge-fill'),
+            startBtn: document.getElementById('startBtn'),
+            history: document.getElementById('history')
+        };
+        
+        // Inicjalizacja
+        function init() {
+            elements.startBtn.addEventListener('click', toggleMeasurement);
+            
+            // Sprawdź czy urządzenie wspiera DeviceOrientationEvent
+            if (!window.DeviceOrientationEvent) {
+                elements.status.textContent = "Twoje urządzenie nie wspiera czujników orientacji";
+                elements.startBtn.disabled = true;
+                return;
+            }
+            
+            // Prośba o uprawnienia do czujników (wymagane w iOS 13+)
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                elements.startBtn.textContent = "DOTKNIJ ABY ZACZĄĆ";
+                elements.startBtn.addEventListener('click', requestPermission);
+            } else {
+                setupSensor();
+            }
+        }
+        
+        // Prośba o uprawnienia (iOS)
+        function requestPermission() {
+            DeviceOrientationEvent.requestPermission()
+                .then(response => {
+                    if (response === 'granted') {
+                        setupSensor();
+                        elements.startBtn.textContent = "START";
+                        elements.startBtn.removeEventListener('click', requestPermission);
+                        elements.startBtn.addEventListener('click', toggleMeasurement);
+                    } else {
+                        elements.status.textContent = "Brak dostępu do czujników - aplikacja nie będzie działać";
+                    }
+                })
+                .catch(console.error);
+        }
+        
+        // Ustawienie nasłuchiwania czujników
+        function setupSensor() {
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+        
+        // Obsługa danych z czujnika
+        function handleOrientation(event) {
+            if (!state.isMeasuring) return;
+            
+            // Beta to kąt pochylenia przód/tył (dla wheelie)
+            const angle = Math.round(Math.abs(event.beta));
+            state.currentAngle = angle;
+            
+            updateDisplay(angle);
+            checkWheelie(angle);
+        }
+        
+        // Aktualizacja interfejsu
+        function updateDisplay(angle) {
+            elements.angleDisplay.textContent = angle + "°";
+            elements.gaugeFill.style.width = Math.min(angle, 100) + "%";
+            
+            // Zmiana koloru dla niebezpiecznego kąta
+            if (angle >= config.dangerThreshold) {
+                elements.angleDisplay.style.color = "#ff3b30";
+                elements.status.textContent = "UWAGA! ZBYT DUŻY KĄT!";
+            } else if (angle >= config.wheelieThreshold) {
+                elements.angleDisplay.style.color = "#34c759";
+                elements.status.textContent = "WHEELIE!";
+            } else {
+                elements.angleDisplay.style.color = "#ff3b30";
+                elements.status.textContent = "Gotowy do pomiaru";
+            }
+            
+            // Aktualizacja czasu jeśli trwa wheelie
+            if (state.isWheelie) {
+                const currentTime = (Date.now() - state.startTime) / 1000;
+                elements.timeDisplay.textContent = currentTime.toFixed(2) + "s";
+            }
+        }
+        
+        // Detekcja wheelie
+        function checkWheelie(angle) {
+            if (angle >= config.wheelieThreshold) {
+                if (!state.isWheelie) {
+                    // Rozpoczęcie wheelie
+                    state.isWheelie = true;
+                    state.startTime = Date.now();
+                    state.maxAngle = angle;
+                } else {
+                    // Aktualizacja maksymalnego kąta
+                    state.maxAngle = Math.max(state.maxAngle, angle);
+                }
+            } else {
+                if (state.isWheelie) {
+                    // Zakończenie wheelie
+                    endWheelie();
+                }
+            }
+        }
+        
+        // Zakończenie pomiaru wheelie
+        function endWheelie() {
+            state.isWheelie = false;
+            const endTime = Date.now();
+            const duration = (endTime - state.startTime) / 1000;
+            
+            // Zapisz wynik
+            const measurement = {
+                angle: state.maxAngle,
+                time: duration,
+                date: new Date().toLocaleTimeString()
+            };
+            
+            state.measurements.unshift(measurement);
+            updateHistory(measurement);
+            
+            // Powiadomienie o wyniku
+            elements.status.textContent = `Wheelie: ${duration.toFixed(2)}s (${state.maxAngle}°)`;
+        }
+        
+        // Aktualizacja historii
+        function updateHistory(measurement) {
+            const entry = document.createElement('div');
+            entry.textContent = `${measurement.date}: ${measurement.time.toFixed(2)}s (${measurement.angle}°)`;
+            elements.history.insertBefore(entry, elements.history.firstChild);
+        }
+        
+        // Rozpoczęcie/zatrzymanie pomiaru
+        function toggleMeasurement() {
+            state.isMeasuring = !state.isMeasuring;
+            
+            if (state.isMeasuring) {
+                elements.startBtn.textContent = "STOP";
+                elements.status.textContent = "Czekam na wheelie...";
+                state.measurements = [];
+                elements.history.innerHTML = "";
+                elements.timeDisplay.textContent = "0.00s";
+            } else {
+                elements.startBtn.textContent = "START";
+                elements.status.textContent = "Pomiar zatrzymany";
+                if (state.isWheelie) {
+                    endWheelie();
+                }
+            }
+        }
+        
+        // Start aplikacji
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
