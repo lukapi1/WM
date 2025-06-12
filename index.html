@@ -175,19 +175,12 @@
     </div>
 
     <script>
-        // Konfiguracja Supabase
         const supabaseUrl = 'https://ixxjlwqchhdqogrhuafo.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4eGpsd3FjaGhkcW9ncmh1YWZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MzU0NjAsImV4cCI6MjA2NDUxMTQ2MH0.axoe0XItrANtM1tim71gYNkwQb9SX_B5AZaQXfHCBlA'; 
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // Konfiguracja
-        const config = {
-            wheelieThreshold: 20, // minimalny kąt uznawany za wheelie (w stopniach)
-            dangerThreshold: 45,  // kąt uznawany za niebezpieczny
-            updateInterval: 100   // częstotliwość aktualizacji (ms)
-        };
-        
-        // Stan aplikacji
+        const config = { wheelieThreshold: 20, dangerThreshold: 45, updateInterval: 100 };
+
         const state = {
             nickname: null,
             isMeasuring: false,
@@ -199,8 +192,7 @@
             measurements: [],
             isLightMode: false
         };
-        
-        // Elementy DOM
+
         const elements = {
             angleDisplay: document.getElementById('angle-display'),
             timeDisplay: document.getElementById('time-display'),
@@ -212,24 +204,17 @@
             history: document.getElementById('history'),
             calibrationValue: document.getElementById('calibration-value')
         };
-        
-        // Inicjalizacja
+
         function init() {
             elements.startBtn.addEventListener('click', toggleMeasurement);
             elements.calibrateBtn.addEventListener('click', calibrate);
             elements.themeBtn.addEventListener('click', toggleTheme);
-            
-            // Wczytaj ustawienia z localStorage
             loadSettings();
-            
-            // Sprawdź czy urządzenie wspiera DeviceOrientationEvent
             if (!window.DeviceOrientationEvent) {
                 elements.status.textContent = "Twoje urządzenie nie wspiera czujników orientacji";
                 elements.startBtn.disabled = true;
                 return;
             }
-            
-            // Prośba o uprawnienia do czujników (wymagane w iOS 13+)
             if (typeof DeviceOrientationEvent.requestPermission === 'function') {
                 elements.startBtn.textContent = "DOTKNIJ ABY ZACZĄĆ";
                 elements.startBtn.addEventListener('click', requestPermission);
@@ -237,194 +222,7 @@
                 setupSensor();
             }
         }
-        
-        // Wczytaj zapisane ustawienia
-        function loadSettings() {
-            const savedTheme = localStorage.getItem('wheelieMeterTheme');
-            if (savedTheme === 'light') {
-                enableLightMode();
-            }
-            
-            const savedCalibration = localStorage.getItem('wheelieMeterCalibration');
-            if (savedCalibration) {
-                state.calibrationOffset = parseFloat(savedCalibration);
-                updateCalibrationDisplay();
-            }
-        }
-        
-        // Zapisz ustawienia
-        function saveSettings() {
-            localStorage.setItem('wheelieMeterTheme', state.isLightMode ? 'light' : 'dark');
-            localStorage.setItem('wheelieMeterCalibration', state.calibrationOffset.toString());
-        }
-        
-        // Przełącz tryb jasny/ciemny
-        function toggleTheme() {
-            if (state.isLightMode) {
-                document.body.classList.remove('light-mode');
-                elements.themeBtn.textContent = "TRYB JASNY";
-            } else {
-                document.body.classList.add('light-mode');
-                elements.themeBtn.textContent = "TRYB CIEMNY";
-            }
-            state.isLightMode = !state.isLightMode;
-            saveSettings();
-        }
-        
-        // Włącz tryb jasny
-        function enableLightMode() {
-            document.body.classList.add('light-mode');
-            elements.themeBtn.textContent = "TRYB CIEMNY";
-            state.isLightMode = true;
-        }
-        
-        // Kalibracja
-        function calibrate() {
-            if (state.isMeasuring) {
-                alert("Zatrzymaj pomiar przed kalibracją");
-                return;
-            }
-            
-            if (state.currentAngle !== null) {
-                state.calibrationOffset = state.currentAngle;
-                updateCalibrationDisplay();
-                saveSettings();
-                elements.status.textContent = "Wykalibrowano do aktualnej pozycji";
-            }
-        }
-        
-        // Aktualizacja wyświetlania kalibracji
-        function updateCalibrationDisplay() {
-            elements.calibrationValue.textContent = `Kalibracja: ${state.calibrationOffset.toFixed(1)}°`;
-        }
-        
-        // Prośba o uprawnienia (iOS)
-        function requestPermission() {
-            DeviceOrientationEvent.requestPermission()
-                .then(response => {
-                    if (response === 'granted') {
-                        setupSensor();
-                        elements.startBtn.textContent = "START";
-                        elements.startBtn.removeEventListener('click', requestPermission);
-                        elements.startBtn.addEventListener('click', toggleMeasurement);
-                    } else {
-                        elements.status.textContent = "Brak dostępu do czujników - aplikacja nie będzie działać";
-                    }
-                })
-                .catch(console.error);
-        }
-        
-        // Ustawienie nasłuchiwania czujników
-        function setupSensor() {
-            window.addEventListener('deviceorientation', handleOrientation);
-        }
-        
-        // Obsługa danych z czujnika
-        function handleOrientation(event) {
-            if (!state.isMeasuring) return;
-            
-            // Beta to kąt pochylenia przód/tył (dla wheelie)
-            let angle = Math.abs(event.beta);
-            
-            // Zastosuj kalibrację
-            angle = Math.abs(angle - state.calibrationOffset);
-            
-            state.currentAngle = angle;
-            
-            updateDisplay(angle);
-            checkWheelie(angle);
-        }
-        
-        // Aktualizacja interfejsu
-        function updateDisplay(angle) {
-            const roundedAngle = Math.round(angle * 10) / 10;
-            elements.angleDisplay.textContent = roundedAngle + "°";
-            elements.gaugeFill.style.width = Math.min(angle, 100) + "%";
-            
-            // Zmiana koloru dla niebezpiecznego kąta
-            if (angle >= config.dangerThreshold) {
-                elements.angleDisplay.style.color = "var(--primary-color)";
-                elements.status.textContent = "UWAGA! ZBYT DUŻY KĄT!";
-            } else if (angle >= config.wheelieThreshold) {
-                elements.angleDisplay.style.color = "var(--success-color)";
-                elements.status.textContent = "WHEELIE!";
-            } else {
-                elements.angleDisplay.style.color = "var(--primary-color)";
-                elements.status.textContent = "Gotowy do pomiaru";
-            }
-            
-            // Aktualizacja czasu jeśli trwa wheelie
-            if (state.isWheelie) {
-                const currentTime = (Date.now() - state.startTime) / 1000;
-                elements.timeDisplay.textContent = currentTime.toFixed(2) + "s";
-            }
-        }
-        
-        // Detekcja wheelie
-        function checkWheelie(angle) {
-            if (angle >= config.wheelieThreshold) {
-                if (!state.isWheelie) {
-                    // Rozpoczęcie wheelie
-                    state.isWheelie = true;
-                    state.startTime = Date.now();
-                    state.maxAngle = angle;
-                } else {
-                    // Aktualizacja maksymalnego kąta
-                    state.maxAngle = Math.max(state.maxAngle, angle);
-                }
-            } else {
-                if (state.isWheelie) {
-                    // Zakończenie wheelie
-                    endWheelie();
-                }
-            }
-        }
-        
-        // Zakończenie pomiaru wheelie
-        function endWheelie() {
-            state.isWheelie = false;
-            const endTime = Date.now();
-            const duration = (endTime - state.startTime) / 1000;
-            
-            // Zapisz wynik
-            const measurement = {
-                angle: state.maxAngle,
-                time: duration,
-                date: new Date().toLocaleTimeString()
-            };
-            
-            state.measurements.unshift(measurement);
-            updateHistory(measurement);
-            
-            // Powiadomienie o wyniku
-            elements.status.textContent = `Wheelie: ${duration.toFixed(2)}s (${state.maxAngle.toFixed(1)}°)`;
-            // Zapis do Supabase
-            if (state.nickname) {
-                supabase.from('wheelie_results').insert({
-                    nickname: state.nickname,
-                    angle: parseFloat(state.maxAngle.toFixed(1)),
-                    duration: parseFloat(duration.toFixed(2)),
-                    device: navigator.userAgent
-                }).then(({ error }) => {
-                    if (error) {
-                        console.error("Błąd zapisu do Supabase:", error.message);
-                    } else {
-                        console.log("Zapisano wynik w Supabase");
-                    }
-                });
-            } else {
-                console.warn("Brak nicku – nie zapisano do Supabase");
-            }
-        }
-        
-        // Aktualizacja historii
-        function updateHistory(measurement) {
-            const entry = document.createElement('div');
-            entry.textContent = `${measurement.date}: ${measurement.time.toFixed(2)}s (${measurement.angle.toFixed(1)}°)`;
-            elements.history.insertBefore(entry, elements.history.firstChild);
-        }
-        
-        // Rozpoczęcie/zatrzymanie pomiaru
+
         function toggleMeasurement() {
             if (!state.isMeasuring && !state.nickname) {
                 const name = prompt("Podaj swój nick:");
@@ -434,9 +232,7 @@
                 }
                 state.nickname = name.trim();
             }
-
             state.isMeasuring = !state.isMeasuring;
-            
             if (state.isMeasuring) {
                 elements.startBtn.textContent = "STOP";
                 elements.status.textContent = "Czekam na wheelie...";
@@ -451,8 +247,162 @@
                 }
             }
         }
-        
-        // Start aplikacji
+
+        function endWheelie() {
+            state.isWheelie = false;
+            const endTime = Date.now();
+            const duration = (endTime - state.startTime) / 1000;
+            const measurement = {
+                angle: state.maxAngle,
+                time: duration,
+                date: new Date().toLocaleTimeString()
+            };
+            state.measurements.unshift(measurement);
+            updateHistory(measurement);
+            elements.status.textContent = `Wheelie: ${duration.toFixed(2)}s (${state.maxAngle.toFixed(1)}°)`;
+            if (state.nickname) {
+                supabaseClient
+                    .from('wheelie_results')
+                    .insert({
+                        nickname: state.nickname,
+                        angle: parseFloat(state.maxAngle.toFixed(1)),
+                        duration: parseFloat(duration.toFixed(2)),
+                        device: navigator.userAgent
+                    })
+                    .then(({ error }) => {
+                        if (error) {
+                            console.error("❌ Błąd zapisu do Supabase:", error.message);
+                            elements.status.textContent += " | Błąd zapisu!";
+                        } else {
+                            console.log("✅ Zapisano wynik w Supabase");
+                            elements.status.textContent += " | Zapisano!";
+                        }
+                    });
+            } else {
+                console.warn("⚠️ Brak nicku – nie zapisano do Supabase");
+            }
+        }
+
+        function calibrate() {
+            if (state.isMeasuring) {
+                alert("Zatrzymaj pomiar przed kalibracją");
+                return;
+            }
+            if (state.currentAngle !== null) {
+                state.calibrationOffset = state.currentAngle;
+                updateCalibrationDisplay();
+                saveSettings();
+                elements.status.textContent = "Wykalibrowano do aktualnej pozycji";
+            }
+        }
+
+        function updateCalibrationDisplay() {
+            elements.calibrationValue.textContent = `Kalibracja: ${state.calibrationOffset.toFixed(1)}°`;
+        }
+
+        function requestPermission() {
+            DeviceOrientationEvent.requestPermission()
+                .then(response => {
+                    if (response === 'granted') {
+                        setupSensor();
+                        elements.startBtn.textContent = "START";
+                        elements.startBtn.removeEventListener('click', requestPermission);
+                        elements.startBtn.addEventListener('click', toggleMeasurement);
+                    } else {
+                        elements.status.textContent = "Brak dostępu do czujników - aplikacja nie będzie działać";
+                    }
+                })
+                .catch(console.error);
+        }
+
+        function setupSensor() {
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+
+        function handleOrientation(event) {
+            if (!state.isMeasuring) return;
+            let angle = Math.abs(event.beta);
+            angle = Math.abs(angle - state.calibrationOffset);
+            state.currentAngle = angle;
+            updateDisplay(angle);
+            checkWheelie(angle);
+        }
+
+        function updateDisplay(angle) {
+            const roundedAngle = Math.round(angle * 10) / 10;
+            elements.angleDisplay.textContent = roundedAngle + "°";
+            elements.gaugeFill.style.width = Math.min(angle, 100) + "%";
+            if (angle >= config.dangerThreshold) {
+                elements.angleDisplay.style.color = "var(--primary-color)";
+                elements.status.textContent = "UWAGA! ZBYT DUŻY KĄT!";
+            } else if (angle >= config.wheelieThreshold) {
+                elements.angleDisplay.style.color = "var(--success-color)";
+                elements.status.textContent = "WHEELIE!";
+            } else {
+                elements.angleDisplay.style.color = "var(--primary-color)";
+                elements.status.textContent = "Gotowy do pomiaru";
+            }
+            if (state.isWheelie) {
+                const currentTime = (Date.now() - state.startTime) / 1000;
+                elements.timeDisplay.textContent = currentTime.toFixed(2) + "s";
+            }
+        }
+
+        function checkWheelie(angle) {
+            if (angle >= config.wheelieThreshold) {
+                if (!state.isWheelie) {
+                    state.isWheelie = true;
+                    state.startTime = Date.now();
+                    state.maxAngle = angle;
+                } else {
+                    state.maxAngle = Math.max(state.maxAngle, angle);
+                }
+            } else {
+                if (state.isWheelie) {
+                    endWheelie();
+                }
+            }
+        }
+
+        function updateHistory(measurement) {
+            const entry = document.createElement('div');
+            entry.textContent = `${measurement.date}: ${measurement.time.toFixed(2)}s (${measurement.angle.toFixed(1)}°)`;
+            elements.history.insertBefore(entry, elements.history.firstChild);
+        }
+
+        function toggleTheme() {
+            if (state.isLightMode) {
+                document.body.classList.remove('light-mode');
+                elements.themeBtn.textContent = "TRYB JASNY";
+            } else {
+                document.body.classList.add('light-mode');
+                elements.themeBtn.textContent = "TRYB CIEMNY";
+            }
+            state.isLightMode = !state.isLightMode;
+            saveSettings();
+        }
+
+        function enableLightMode() {
+            document.body.classList.add('light-mode');
+            elements.themeBtn.textContent = "TRYB CIEMNY";
+            state.isLightMode = true;
+        }
+
+        function loadSettings() {
+            const savedTheme = localStorage.getItem('wheelieMeterTheme');
+            if (savedTheme === 'light') enableLightMode();
+            const savedCalibration = localStorage.getItem('wheelieMeterCalibration');
+            if (savedCalibration) {
+                state.calibrationOffset = parseFloat(savedCalibration);
+                updateCalibrationDisplay();
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('wheelieMeterTheme', state.isLightMode ? 'light' : 'dark');
+            localStorage.setItem('wheelieMeterCalibration', state.calibrationOffset.toString());
+        }
+
         window.addEventListener('load', init);
     </script>
 </body>
