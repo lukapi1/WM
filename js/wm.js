@@ -252,8 +252,22 @@ function handleOrientation(event) {
 function updateDisplay(angle) {
   const roundedAngle = Math.round(angle * 10) / 10;
   elements.angleDisplay.textContent = roundedAngle + "°";
-  elements.gaugeFill.style.width = Math.min(angle, 100) + "%";
+
+  // Nowe obliczenia dla paska (25° = 50% wypełnienia)
+  const maxAngle = 50; // Maksymalny kąt (100% wypełnienia)
+  let fillPercentage;
   
+  if (angle <= 25) {
+    // 0–25° → 0–50% wypełnienia
+    fillPercentage = (angle / 25) * 50;
+  } else {
+    // 25–50° → 50–100% wypełnienia
+    fillPercentage = 50 + ((angle - 25) / (maxAngle - 25)) * 50;
+  }
+
+  elements.gaugeFill.style.width = Math.min(fillPercentage, 100) + "%";
+
+  // Reszta funkcji bez zmian (kolory, statusy itd.)
   if (angle >= config.dangerThreshold) {
     elements.angleDisplay.style.color = "var(--primary-color)";
     elements.status.textContent = "UWAGA! ZBYT DUŻY KĄT!";
@@ -399,7 +413,6 @@ function showNotification(message, type = 'info') {
     document.body.removeChild(notification);
   }, 4000);
 }
-
 
 /**
  * Zapisuje ustawienia
