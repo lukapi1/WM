@@ -1,46 +1,47 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Wheelie Meter Pro</title>
-  <link rel="stylesheet" href="./css/wm.css">
+  <link rel="stylesheet" href="./css/wm.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div id="container">
-    <div>
-      <h1>WHEELIE METER PRO</h1>
-      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <div class="app-container">
+    <header class="app-header">
+      <h1>Wheelie Meter Pro</h1>
+    </header>
 
-      <div id="angle-display">0°</div>
-      <div id="time-display">0.00s</div>
-      <div id="status">Gotowy do pomiaru</div>
-      
-      <div id="gauge">
-        <div id="gauge-fill"></div>
-        <div id="gauge-marker"></div>
+    <main class="app-main">
+      <div class="display-panel">
+        <div id="angle-display" class="display-value">0°</div>
+        <div id="time-display" class="display-value secondary">0.00s</div>
+        <div id="status" class="status-text">Gotowy do pomiaru</div>
+        <div id="gauge" class="gauge">
+          <div id="gauge-fill"></div>
+          <div id="gauge-marker"></div>
+        </div>
+        <div id="calibration-value" class="calibration-info">Kalibracja: 0°</div>
       </div>
-      
-      <div id="calibration-value">Kalibracja: 0°</div>
-      
-      <div class="controls-row">
-        <button id="calibrateBtn" class="small-button">KALIBRUJ</button>
-        <button id="themeBtn" class="small-button">TRYB JASNY</button>
+
+      <div class="controls-group">
+        <button id="calibrateBtn" class="button small">Kalibruj</button>
+        <button id="themeBtn" class="button small">Tryb Jasny</button>
       </div>
-      
-      <div class="controls-row">
-        <button id="startBtn">START</button>
-        <button id="resetBtn" disabled>RESET</button>
-        <button id="saveBtn" disabled>ZAPISZ</button>
+
+      <div class="controls-group">
+        <button id="startBtn" class="button primary">Start</button>
+        <button id="resetBtn" class="button" disabled>Reset</button>
+        <button id="saveBtn" class="button" disabled>Zapisz</button>
       </div>
-    </div>
-    
-    <div>
-      <div id="history"></div>
-      <div class="warning">
-        Zabezpiecz telefon przed upadkiem! Używaj aplikacji z rozwagą.
+
+      <div id="history" class="history-panel"></div>
+      <div class="warning-text">
+        ⚠️ Zabezpiecz telefon przed upadkiem!<br />
+        Używaj aplikacji z rozwagą.
       </div>
-    </div>
+    </main>
   </div>
 
   <script type="module" src="./js/wm.js"></script>
