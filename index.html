@@ -2,95 +2,65 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="description" content="Profesjonalny miernik wheelie - mierzy kąt i czas trwania wheelie">
-  <title>Wheelie Meter Pro | Profesjonalny miernik wheelie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Wheelie Meter</title>
+  <style>
+    /* Wbudowane style dla lepszego renderowania na iOS */
+    body {
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-overflow-scrolling: touch;
+    }
+  </style>
   <link rel="stylesheet" href="./css/wm.css">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <div class="app-container">
-    <header class="app-header">
-    </header>
-
     <main class="app-main">
-      <section class="display-panel" aria-labelledby="measurement-heading">
-        <h2 id="measurement-heading" class="sr-only">Pomiar wheelie</h2>
-        
-        <div class="display-values">
-          <div id="angle-display" class="display-value" aria-live="polite" aria-atomic="true">
-            <span class="value">0</span>
-            <span class="unit">°</span>
-          </div>
-          <div id="time-display" class="display-value secondary" aria-live="polite" aria-atomic="true">
-            <span class="value">0.00</span>
-            <span class="unit">s</span>
-          </div>
+      <div class="display-panel">
+        <div class="measurement-display">
+          <div id="angle-display" class="angle-value">0°</div>
+          <div id="time-display" class="time-value">0.00s</div>
         </div>
-
-        <div id="status" class="status-text" role="status" aria-live="polite">Gotowy do pomiaru</div>
-
+        
+        <div id="status" class="status-text">Gotowy</div>
+        
         <div class="gauge-container">
-          <div id="gauge" class="gauge" role="meter" aria-valuemin="0" aria-valuemax="45" aria-valuenow="0">
+          <div id="gauge" class="gauge">
             <div id="gauge-fill" class="gauge-fill"></div>
             <div id="gauge-marker" class="gauge-marker"></div>
           </div>
-          <div class="gauge-labels">
+          <div class="gauge-scale">
             <span>0°</span>
             <span>45°</span>
           </div>
         </div>
-
-        <div id="calibration-value" class="calibration-info">
-          <i class="fas fa-tools" aria-hidden="true"></i>
-          <span>Kalibracja: <span class="value">0</span>°</span>
-        </div>
-      </section>
-
-      <section class="controls-section" aria-labelledby="controls-heading">
-        <h2 id="controls-heading" class="sr-only">Sterowanie aplikacją</h2>
         
-        <div class="controls-group">
-          <button id="calibrateBtn" class="button small" aria-label="Kalibracja">
-            <i class="fas fa-sliders-h" aria-hidden="true"></i>
-            Kalibruj
-          </button>
-          <button id="themeBtn" class="button small" aria-label="Przełącz tryb jasny/ciemny">
-            <i class="fas fa-moon" aria-hidden="true"></i>
-            Tryb Jasny
-          </button>
-        </div>
+        <div id="calibration-value" class="calibration-info">Kalibracja: 0°</div>
+      </div>
 
-        <div class="controls-group">
-          <button id="startBtn" class="button primary" aria-label="Rozpocznij pomiar">
-            <i class="fas fa-play" aria-hidden="true"></i>
-            Start
-          </button>
-          <button id="resetBtn" class="button secondary" disabled aria-label="Resetuj pomiar">
-            <i class="fas fa-undo" aria-hidden="true"></i>
-            Reset
-          </button>
-          <button id="saveBtn" class="button success" disabled aria-label="Zapisz wynik">
-            <i class="fas fa-save" aria-hidden="true"></i>
-            Zapisz
-          </button>
+      <div class="control-buttons">
+        <div class="button-row">
+          <button id="startBtn" class="button start-button">Start</button>
         </div>
-      </section>
-
-      <section class="history-section" aria-labelledby="history-heading">
-        <h2 id="history-heading">Historia pomiarów</h2>
-        <div id="history" class="history-panel" role="log" aria-live="polite"></div>
-      </section>
-
-      <aside class="warning-text" role="note">
-        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
-        <div>
-          <strong>Ostrzeżenie bezpieczeństwa</strong>
-          <p>Zabezpiecz telefon przed upadkiem! Używaj aplikacji z rozwagą.</p>
+        <div class="button-row">
+          <button id="calibrateBtn" class="button calibrate-button">Kalibruj</button>
+          <button id="resetBtn" class="button reset-button" disabled>Reset</button>
+          <button id="saveBtn" class="button save-button" disabled>Zapisz</button>
         </div>
-      </aside>
+        <div class="button-row">
+          <button id="themeBtn" class="button theme-button">Tryb Jasny</button>
+        </div>
+      </div>
+
+      <div id="history" class="history-panel"></div>
+      
+      <div class="safety-warning">
+        ⚠️ Zabezpiecz telefon przed upadkiem!
+      </div>
     </main>
   </div>
 
