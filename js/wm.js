@@ -137,6 +137,7 @@ async function saveSession() {
   try {
     const sessionId = crypto.randomUUID(); // unikalne ID sesji
 
+    console.log("Pomiarów do zapisania:", state.measurements);
     const entries = state.measurements.map(m => ({
       nickname: state.nickname,
       angle: parseFloat(m.angle.toFixed(1)),
