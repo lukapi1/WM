@@ -1,409 +1,44 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Wheelie Meter Pro</title>
-    <style>
-        :root {
-            --bg-color: #000;
-            --text-color: #fff;
-            --primary-color: #ff3b30;
-            --success-color: #34c759;
-            --warning-color: #ffcc00;
-            --gauge-bg: #333;
-            --history-bg: #111;
-        }
-
-        .light-mode {
-            --bg-color: #f2f2f7;
-            --text-color: #000;
-            --primary-color: #007aff;
-            --success-color: #28a745;
-            --warning-color: #ff9500;
-            --gauge-bg: #e5e5ea;
-            --history-bg: #d1d1d6;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            text-align: center;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        
-        #container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        
-        h1 {
-            color: var(--primary-color);
-            margin-top: 10px;
-        }
-        
-        #angle-display {
-            font-size: 5rem;
-            font-weight: bold;
-            margin: 20px 0;
-            color: var(--primary-color);
-        }
-        
-        #time-display {
-            font-size: 2.5rem;
-            margin: 10px 0;
-        }
-        
-        #status {
-            font-size: 1.5rem;
-            margin: 20px 0;
-            min-height: 2rem;
-        }
-        
-        #gauge {
-            width: 100%;
-            height: 30px;
-            background: var(--gauge-bg);
-            border-radius: 15px;
-            margin: 20px 0;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        #gauge-fill {
-            height: 100%;
-            background: linear-gradient(to right, var(--primary-color), var(--success-color));
-            width: 0%;
-            transition: width 0.1s;
-        }
-        
-        #gauge-marker {
-            position: absolute;
-            width: 3px;
-            height: 40px;
-            background: var(--text-color);
-            top: -5px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        button {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            margin: 10px;
-            cursor: pointer;
-        }
-        
-        #history {
-            margin-top: 20px;
-            text-align: left;
-            max-height: 100px;
-            overflow-y: auto;
-            background-color: var(--history-bg);
-            border-radius: 10px;
-            padding: 10px;
-        }
-        
-        .warning {
-            color: var(--warning-color);
-            font-size: 0.9rem;
-            margin-top: 20px;
-        }
-        
-        .controls-row {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .small-button {
-            padding: 8px 15px;
-            font-size: 0.9rem;
-            background: var(--gauge-bg);
-        }
-        
-        #calibration-value {
-            margin: 10px 0;
-            font-size: 0.9rem;
-            color: var(--warning-color);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Wheelie Meter Pro</title>
+  <link rel="stylesheet" href="./css/wm.css">
 </head>
 <body>
-    <div id="container">
-        <div>
-            <h1>WHEELIE METER PRO</h1>
-            <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <div id="container">
+    <div>
+      <h1>WHEELIE METER PRO</h1>
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-            <div id="angle-display">0°</div>
-            <div id="time-display">0.00s</div>
-            <div id="status">Gotowy do pomiaru</div>
-            
-            <div id="gauge">
-                <div id="gauge-fill"></div>
-                <div id="gauge-marker"></div>
-            </div>
-            
-            <div id="calibration-value">Kalibracja: 0°</div>
-            
-            <div class="controls-row">
-                <button id="calibrateBtn" class="small-button">KALIBRUJ</button>
-                <button id="themeBtn" class="small-button">TRYB JASNY</button>
-            </div>
-            
-            <button id="startBtn">START</button>
-        </div>
-        
-        <div>
-            <div id="history"></div>
-            <div class="warning">
-                Zabezpiecz telefon przed upadkiem! Używaj aplikacji z rozwagą.
-            </div>
-        </div>
+      <div id="angle-display">0°</div>
+      <div id="time-display">0.00s</div>
+      <div id="status">Gotowy do pomiaru</div>
+      
+      <div id="gauge">
+        <div id="gauge-fill"></div>
+        <div id="gauge-marker"></div>
+      </div>
+      
+      <div id="calibration-value">Kalibracja: 0°</div>
+      
+      <div class="controls-row">
+        <button id="calibrateBtn" class="small-button">KALIBRUJ</button>
+        <button id="themeBtn" class="small-button">TRYB JASNY</button>
+      </div>
+      
+      <button id="startBtn">START</button>
     </div>
+    
+    <div>
+      <div id="history"></div>
+      <div class="warning">
+        Zabezpiecz telefon przed upadkiem! Używaj aplikacji z rozwagą.
+      </div>
+    </div>
+  </div>
 
-    <script>
-        const supabaseUrl = 'https://ixxjlwqchhdqogrhuafo.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4eGpsd3FjaGhkcW9ncmh1YWZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MzU0NjAsImV4cCI6MjA2NDUxMTQ2MH0.axoe0XItrANtM1tim71gYNkwQb9SX_B5AZaQXfHCBlA'; 
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-        const config = { wheelieThreshold: 20, dangerThreshold: 45, updateInterval: 100 };
-
-        const state = {
-            nickname: null,
-            isMeasuring: false,
-            isWheelie: false,
-            startTime: 0,
-            currentAngle: 0,
-            maxAngle: 0,
-            calibrationOffset: 0,
-            measurements: [],
-            isLightMode: false
-        };
-
-        const elements = {
-            angleDisplay: document.getElementById('angle-display'),
-            timeDisplay: document.getElementById('time-display'),
-            status: document.getElementById('status'),
-            gaugeFill: document.getElementById('gauge-fill'),
-            startBtn: document.getElementById('startBtn'),
-            calibrateBtn: document.getElementById('calibrateBtn'),
-            themeBtn: document.getElementById('themeBtn'),
-            history: document.getElementById('history'),
-            calibrationValue: document.getElementById('calibration-value')
-        };
-
-        function init() {
-            elements.startBtn.addEventListener('click', toggleMeasurement);
-            elements.calibrateBtn.addEventListener('click', calibrate);
-            elements.themeBtn.addEventListener('click', toggleTheme);
-            loadSettings();
-            if (!window.DeviceOrientationEvent) {
-                elements.status.textContent = "Twoje urządzenie nie wspiera czujników orientacji";
-                elements.startBtn.disabled = true;
-                return;
-            }
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                elements.startBtn.textContent = "DOTKNIJ ABY ZACZĄĆ";
-                elements.startBtn.addEventListener('click', requestPermission);
-            } else {
-                setupSensor();
-            }
-        }
-
-        function toggleMeasurement() {
-            if (!state.isMeasuring && !state.nickname) {
-                const name = prompt("Podaj swój nick:");
-                if (!name) {
-                    alert("Nick jest wymagany do zapisu wyników.");
-                    return;
-                }
-                state.nickname = name.trim();
-            }
-            state.isMeasuring = !state.isMeasuring;
-            if (state.isMeasuring) {
-                elements.startBtn.textContent = "STOP";
-                elements.status.textContent = "Czekam na wheelie...";
-                state.measurements = [];
-                elements.history.innerHTML = "";
-                elements.timeDisplay.textContent = "0.00s";
-            } else {
-                elements.startBtn.textContent = "START";
-                elements.status.textContent = "Pomiar zatrzymany";
-                if (state.isWheelie) {
-                    endWheelie();
-                }
-            }
-        }
-
-        function endWheelie() {
-            state.isWheelie = false;
-            const endTime = Date.now();
-            const duration = (endTime - state.startTime) / 1000;
-            const measurement = {
-                angle: state.maxAngle,
-                time: duration,
-                date: new Date().toLocaleTimeString()
-            };
-            state.measurements.unshift(measurement);
-            updateHistory(measurement);
-            elements.status.textContent = `Wheelie: ${duration.toFixed(2)}s (${state.maxAngle.toFixed(1)}°)`;
-            if (state.nickname) {
-                supabaseClient
-                    .from('wheelie_results')
-                    .insert({
-                        nickname: state.nickname,
-                        angle: parseFloat(state.maxAngle.toFixed(1)),
-                        duration: parseFloat(duration.toFixed(2)),
-                        device: navigator.userAgent
-                    })
-                    .then(({ error }) => {
-                        if (error) {
-                            console.error("❌ Błąd zapisu do Supabase:", error.message);
-                            elements.status.textContent += " | Błąd zapisu!";
-                        } else {
-                            console.log("✅ Zapisano wynik w Supabase");
-                            elements.status.textContent += " | Zapisano!";
-                        }
-                    });
-            } else {
-                console.warn("⚠️ Brak nicku – nie zapisano do Supabase");
-            }
-        }
-
-        function calibrate() {
-            if (state.isMeasuring) {
-                alert("Zatrzymaj pomiar przed kalibracją");
-                return;
-            }
-            if (state.currentAngle !== null) {
-                state.calibrationOffset = state.currentAngle;
-                updateCalibrationDisplay();
-                saveSettings();
-                elements.status.textContent = "Wykalibrowano do aktualnej pozycji";
-            }
-        }
-
-        function updateCalibrationDisplay() {
-            elements.calibrationValue.textContent = `Kalibracja: ${state.calibrationOffset.toFixed(1)}°`;
-        }
-
-        function requestPermission() {
-            DeviceOrientationEvent.requestPermission()
-                .then(response => {
-                    if (response === 'granted') {
-                        setupSensor();
-                        elements.startBtn.textContent = "START";
-                        elements.startBtn.removeEventListener('click', requestPermission);
-                        elements.startBtn.addEventListener('click', toggleMeasurement);
-                    } else {
-                        elements.status.textContent = "Brak dostępu do czujników - aplikacja nie będzie działać";
-                    }
-                })
-                .catch(console.error);
-        }
-
-        function setupSensor() {
-            window.addEventListener('deviceorientation', handleOrientation);
-        }
-
-        function handleOrientation(event) {
-            if (!state.isMeasuring) return;
-            let angle = Math.abs(event.beta);
-            angle = Math.abs(angle - state.calibrationOffset);
-            state.currentAngle = angle;
-            updateDisplay(angle);
-            checkWheelie(angle);
-        }
-
-        function updateDisplay(angle) {
-            const roundedAngle = Math.round(angle * 10) / 10;
-            elements.angleDisplay.textContent = roundedAngle + "°";
-            elements.gaugeFill.style.width = Math.min(angle, 100) + "%";
-            if (angle >= config.dangerThreshold) {
-                elements.angleDisplay.style.color = "var(--primary-color)";
-                elements.status.textContent = "UWAGA! ZBYT DUŻY KĄT!";
-            } else if (angle >= config.wheelieThreshold) {
-                elements.angleDisplay.style.color = "var(--success-color)";
-                elements.status.textContent = "WHEELIE!";
-            } else {
-                elements.angleDisplay.style.color = "var(--primary-color)";
-                elements.status.textContent = "Gotowy do pomiaru";
-            }
-            if (state.isWheelie) {
-                const currentTime = (Date.now() - state.startTime) / 1000;
-                elements.timeDisplay.textContent = currentTime.toFixed(2) + "s";
-            }
-        }
-
-        function checkWheelie(angle) {
-            if (angle >= config.wheelieThreshold) {
-                if (!state.isWheelie) {
-                    state.isWheelie = true;
-                    state.startTime = Date.now();
-                    state.maxAngle = angle;
-                } else {
-                    state.maxAngle = Math.max(state.maxAngle, angle);
-                }
-            } else {
-                if (state.isWheelie) {
-                    endWheelie();
-                }
-            }
-        }
-
-        function updateHistory(measurement) {
-            const entry = document.createElement('div');
-            entry.textContent = `${measurement.date}: ${measurement.time.toFixed(2)}s (${measurement.angle.toFixed(1)}°)`;
-            elements.history.insertBefore(entry, elements.history.firstChild);
-        }
-
-        function toggleTheme() {
-            if (state.isLightMode) {
-                document.body.classList.remove('light-mode');
-                elements.themeBtn.textContent = "TRYB JASNY";
-            } else {
-                document.body.classList.add('light-mode');
-                elements.themeBtn.textContent = "TRYB CIEMNY";
-            }
-            state.isLightMode = !state.isLightMode;
-            saveSettings();
-        }
-
-        function enableLightMode() {
-            document.body.classList.add('light-mode');
-            elements.themeBtn.textContent = "TRYB CIEMNY";
-            state.isLightMode = true;
-        }
-
-        function loadSettings() {
-            const savedTheme = localStorage.getItem('wheelieMeterTheme');
-            if (savedTheme === 'light') enableLightMode();
-            const savedCalibration = localStorage.getItem('wheelieMeterCalibration');
-            if (savedCalibration) {
-                state.calibrationOffset = parseFloat(savedCalibration);
-                updateCalibrationDisplay();
-            }
-        }
-
-        function saveSettings() {
-            localStorage.setItem('wheelieMeterTheme', state.isLightMode ? 'light' : 'dark');
-            localStorage.setItem('wheelieMeterCalibration', state.calibrationOffset.toString());
-        }
-
-        window.addEventListener('load', init);
-    </script>
+  <script type="module" src="./js/wm.js"></script>
 </body>
 </html>
