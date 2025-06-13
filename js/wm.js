@@ -380,13 +380,24 @@ function loadSettings() {
  */
 function showNotification(message, type = 'info') {
   const notification = document.createElement('div');
-  notification.className = `toast ${type}`;
   notification.textContent = message;
+  notification.style.position = 'fixed';
+  notification.style.bottom = '20px';
+  notification.style.left = '50%';
+  notification.style.transform = 'translateX(-50%)';
+  notification.style.backgroundColor = type === 'success' ? '#4caf50' :
+                                       type === 'error' ? '#f44336' : '#2196f3';
+  notification.style.color = '#fff';
+  notification.style.padding = '12px 24px';
+  notification.style.borderRadius = '8px';
+  notification.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+  notification.style.zIndex = '9999';
+  notification.style.fontSize = '16px';
   document.body.appendChild(notification);
 
   setTimeout(() => {
-    notification.remove();
-  }, 4000); // trwałość komunikatu
+    document.body.removeChild(notification);
+  }, 4000);
 }
 
 
