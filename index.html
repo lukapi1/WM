@@ -6,62 +6,42 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Wheelie Meter</title>
-  <style>
-    /* Wbudowane style dla lepszego renderowania na iOS */
-    body {
-      -webkit-text-size-adjust: 100%;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-overflow-scrolling: touch;
-    }
-  </style>
   <link rel="stylesheet" href="./css/wm.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <div class="app-container">
-    <main class="app-main">
-      <div class="display-panel">
-        <div class="measurement-display">
-          <div id="angle-display" class="angle-value">0°</div>
-          <div id="time-display" class="time-value">0.00s</div>
-        </div>
-        
-        <div id="status" class="status-text">Gotowy</div>
-        
-        <div class="gauge-container">
-          <div id="gauge" class="gauge">
-            <div id="gauge-fill" class="gauge-fill"></div>
-            <div id="gauge-marker" class="gauge-marker"></div>
-          </div>
-          <div class="gauge-scale">
-            <span>0°</span>
-            <span>45°</span>
-          </div>
-        </div>
-        
-        <div id="calibration-value" class="calibration-info">Kalibracja: 0°</div>
-      </div>
+  <div id="container">
+    <div class="content-wrapper">
+      <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-      <div class="control-buttons">
-        <div class="button-row">
-          <button id="startBtn" class="button start-button">Start</button>
-        </div>
-        <div class="button-row">
-          <button id="calibrateBtn" class="button calibrate-button">Kalibruj</button>
-          <button id="resetBtn" class="button reset-button" disabled>Reset</button>
-          <button id="saveBtn" class="button save-button" disabled>Zapisz</button>
-        </div>
-        <div class="button-row">
-          <button id="themeBtn" class="button theme-button">Tryb Jasny</button>
-        </div>
-      </div>
-
-      <div id="history" class="history-panel"></div>
+      <div id="angle-display">0°</div>
+      <div id="time-display">0.00s</div>
+      <div id="status">Gotowy do pomiaru</div>
       
-      <div class="safety-warning">
-        ⚠️ Zabezpiecz telefon przed upadkiem!
+      <div id="gauge">
+        <div id="gauge-fill"></div>
+        <div id="gauge-marker"></div>
       </div>
-    </main>
+      
+      <div id="calibration-value">Kalibracja: 0°</div>
+      
+      <div class="controls-row">
+        <button id="calibrateBtn" class="small-button">KALIBRUJ</button>
+        <button id="themeBtn" class="small-button">TRYB JASNY</button>
+      </div>
+      
+      <div class="controls-row">
+        <button id="startBtn">START</button>
+        <button id="resetBtn" disabled>RESET</button>
+        <button id="saveBtn" disabled>ZAPISZ</button>
+      </div>
+    </div>
+    
+    <div class="history-wrapper">
+      <div id="history"></div>
+      <div class="warning">
+        Zabezpiecz telefon przed upadkiem! Używaj aplikacji z rozwagą.
+      </div>
+    </div>
   </div>
 
   <script type="module" src="./js/wm.js"></script>
