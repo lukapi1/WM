@@ -140,13 +140,17 @@ async function saveSession() {
     return;
   }
 
+  if (!state.unsavedResults) {
+    alert("Te wyniki już zostały zapisane.");
+    return;
+  }
+
   elements.saveBtn.disabled = true;
-  elements.status.textContent = "Zapisywanie...";
+  elements.status.textContent = "Zapisywanie do bazy...";
 
   try {
-    const sessionId = crypto.randomUUID(); // unikalne ID sesji
+    const sessionId = state.sessionId;
 
-    console.log("Pomiarów do zapisania:", state.measurements);
     const entries = state.measurements.map(m => ({
       nickname: state.nickname,
       angle: parseFloat(m.angle.toFixed(1)),
@@ -160,16 +164,19 @@ async function saveSession() {
 
     if (error) throw error;
 
-    elements.status.textContent = `Zapisano ${entries.length} wyników (sesja ${sessionId.slice(0, 8)}...)`;
-    alert(`Zapisano ${entries.length} wyników!`);
+    elements.status.textContent = `✅ Zapisano ${entries.length} wyników (sesja ${sessionId.slice(0, 8)}...)`;
+    showNotification(`Zapisano ${entries.length} wyników ✅`, 'success');
+
+    // Wyłączenie dalszego zapisu
     state.unsavedResults = null;
     state.measurements = [];
     elements.saveBtn.disabled = true;
     elements.resetBtn.disabled = true;
   } catch (error) {
-    elements.saveBtn.disabled = false;
-    elements.status.textContent = `Błąd zapisu: ${error.message}`;
+    elements.status.textContent = `❌ Błąd zapisu: ${error.message}`;
+    showNotification("❌ Błąd zapisu do bazy!", 'error');
     console.error("Błąd zapisu:", error);
+    elements.saveBtn.disabled = false;
   }
 }
 
@@ -366,6 +373,31 @@ function loadSettings() {
     state.calibrationOffset = parseFloat(savedCalibration);
     updateCalibrationDisplay();
   }
+}
+
+/**
+ * Pokazuje widoczny komunikat (powiadomienie)
+ */
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.textContent = message;
+  notification.style.position = 'fixed';
+  notification.style.bottom = '20px';
+  notification.style.left = '50%';
+  notification.style.transform = 'translateX(-50%)';
+  notification.style.backgroundColor = type === 'success' ? '#4caf50' :
+                                       type === 'error' ? '#f44336' : '#2196f3';
+  notification.style.color = '#fff';
+  notification.style.padding = '12px 24px';
+  notification.style.borderRadius = '8px';
+  notification.style.boxShadow = '0 2px 6px rgba(0,0,0,0.3)';
+  notification.style.zIndex = '9999';
+  notification.style.fontSize = '16px';
+  document.body.appendChild(notification);
+
+  setTimeout(() => {
+    document.body.removeChild(notification);
+  }, 4000);
 }
 
 /**
