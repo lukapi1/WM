@@ -55,17 +55,16 @@ const elements = {
  * Inicjalizacja aplikacji
  */
 function init() {
-  elements.startBtn.addEventListener('click', toggleMeasurement);
   elements.resetBtn.addEventListener('click', resetSession);
   elements.saveBtn.addEventListener('click', saveSession);
   elements.calibrateBtn.addEventListener('click', calibrate);
   elements.themeBtn.addEventListener('click', toggleTheme);
-  
+
   elements.resetBtn.disabled = true;
   elements.saveBtn.disabled = true;
-  
+
   loadSettings();
-  
+
   if (!window.DeviceOrientationEvent) {
     elements.status.textContent = "Twoje urządzenie nie wspiera czujników orientacji";
     elements.startBtn.disabled = true;
@@ -74,11 +73,21 @@ function init() {
 
   if (typeof DeviceOrientationEvent.requestPermission === 'function') {
     elements.startBtn.textContent = "DOTKNIJ ABY ZACZĄĆ";
-    elements.startBtn.addEventListener('click', requestPermission);
+    elements.startBtn.addEventListener('click', () => {
+      requestPermission().then(granted => {
+        if (granted) {
+          elements.startBtn.textContent = "START";
+          elements.startBtn.removeEventListener('click', requestPermission);
+          elements.startBtn.addEventListener('click', toggleMeasurement);
+        }
+      });
+    });
   } else {
     setupSensor();
+    elements.startBtn.addEventListener('click', toggleMeasurement);
   }
 }
+
 
 /**
  * Rozpoczyna pomiar
@@ -152,6 +161,7 @@ async function saveSession() {
     if (error) throw error;
 
     elements.status.textContent = `Zapisano ${entries.length} wyników (sesja ${sessionId.slice(0, 8)}...)`;
+    alert(`Zapisano ${entries.length} wyników!`);
     state.unsavedResults = null;
     state.measurements = [];
     elements.saveBtn.disabled = true;
@@ -191,19 +201,22 @@ function updateCalibrationDisplay() {
  * Prosi o uprawnienia na iOS
  */
 function requestPermission() {
-  DeviceOrientationEvent.requestPermission()
+  return DeviceOrientationEvent.requestPermission()
     .then(response => {
       if (response === 'granted') {
         setupSensor();
-        elements.startBtn.textContent = "START";
-        elements.startBtn.removeEventListener('click', requestPermission);
-        elements.startBtn.addEventListener('click', toggleMeasurement);
+        return true;
       } else {
         elements.status.textContent = "Brak dostępu do czujników";
+        return false;
       }
     })
-    .catch(console.error);
+    .catch(error => {
+      console.error(error);
+      return false;
+    });
 }
+
 
 /**
  * Ustawia nasłuchiwanie czujnika
@@ -291,6 +304,13 @@ function endWheelie() {
   
   elements.status.textContent = `Wheelie: ${duration.toFixed(2)}s (${state.maxAngle.toFixed(1)}°)`;
   elements.saveBtn.disabled = false;
+
+  // Krótka blokada przed następnym wheelie
+  state.isMeasuring = false;
+  setTimeout(() => {
+    state.isMeasuring = true;
+  }, 1000);
+
 }
 
 /**
