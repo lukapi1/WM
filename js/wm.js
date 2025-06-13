@@ -126,7 +126,7 @@ function resetSession() {
  * Zapisuje wyniki do bazy danych
  */
 async function saveSession() {
-  if (!state.unsavedResults) {
+  if (!state.measurements || state.measurements.length === 0) {
     alert("Brak wyników do zapisania!");
     return;
   }
@@ -135,21 +135,26 @@ async function saveSession() {
   elements.status.textContent = "Zapisywanie...";
 
   try {
-    const { error } = await supabase
-      .from('wheelie_results')
-      .insert([{
-        nickname: state.nickname,
-        angle: parseFloat(state.unsavedResults.angle.toFixed(1)),
-        duration: parseFloat(state.unsavedResults.duration.toFixed(2)),
-        created_at: new Date().toISOString(),
-        device: navigator.userAgent.substring(0, 100),
-        session_id: state.sessionId
-      }]);
+    const sessionId = crypto.randomUUID(); // unikalne ID sesji
+
+    const entries = state.measurements.map(m => ({
+      nickname: state.nickname,
+      angle: parseFloat(m.angle.toFixed(1)),
+      duration: parseFloat(m.duration.toFixed(2)),
+      created_at: new Date().toISOString(),
+      device: navigator.userAgent.substring(0, 100),
+      session_id: sessionId
+    }));
+
+    const { error } = await supabase.from('wheelie_results').insert(entries);
 
     if (error) throw error;
 
-    elements.status.textContent = `Zapisano: ${state.unsavedResults.time.toFixed(2)}s (${state.unsavedResults.angle.toFixed(1)}°)`;
+    elements.status.textContent = `Zapisano ${entries.length} wyników (sesja ${sessionId.slice(0, 8)}...)`;
     state.unsavedResults = null;
+    state.measurements = [];
+    elements.saveBtn.disabled = true;
+    elements.resetBtn.disabled = true;
   } catch (error) {
     elements.saveBtn.disabled = false;
     elements.status.textContent = `Błąd zapisu: ${error.message}`;
