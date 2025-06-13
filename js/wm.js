@@ -23,8 +23,16 @@ const state = {
   calibrationOffset: 0,
   measurements: [],
   isLightMode: false,
-  unsavedResults: null
+  unsavedResults: null,
+  sessionId: generateSessionId()
 };
+
+/**
+ * Generuje losowe ID sesji (UUID v4)
+ */
+function generateSessionId() {
+  return crypto.randomUUID();
+}
 
 /**
  * Referencje do elementów DOM
@@ -47,28 +55,23 @@ const elements = {
  * Inicjalizacja aplikacji
  */
 function init() {
-  // Nasłuchiwanie zdarzeń przycisków
   elements.startBtn.addEventListener('click', toggleMeasurement);
   elements.resetBtn.addEventListener('click', resetSession);
   elements.saveBtn.addEventListener('click', saveSession);
   elements.calibrateBtn.addEventListener('click', calibrate);
   elements.themeBtn.addEventListener('click', toggleTheme);
   
-  // Początkowa dezaktywacja przycisków
   elements.resetBtn.disabled = true;
   elements.saveBtn.disabled = true;
   
-  // Wczytanie ustawień
   loadSettings();
   
-  // Sprawdzenie czujników
   if (!window.DeviceOrientationEvent) {
     elements.status.textContent = "Twoje urządzenie nie wspiera czujników orientacji";
     elements.startBtn.disabled = true;
     return;
   }
-  
-  // Specjalna obsługa dla iOS
+
   if (typeof DeviceOrientationEvent.requestPermission === 'function') {
     elements.startBtn.textContent = "DOTKNIJ ABY ZACZĄĆ";
     elements.startBtn.addEventListener('click', requestPermission);
@@ -107,6 +110,7 @@ function resetSession() {
     state.isWheelie = false;
     state.measurements = [];
     state.unsavedResults = null;
+    state.sessionId = generateSessionId(); // Nowa sesja
     elements.history.innerHTML = "";
     elements.timeDisplay.textContent = "0.00s";
     elements.startBtn.disabled = false;
@@ -129,7 +133,7 @@ async function saveSession() {
 
   elements.saveBtn.disabled = true;
   elements.status.textContent = "Zapisywanie...";
-  
+
   try {
     const { error } = await supabase
       .from('wheelie_results')
@@ -138,11 +142,12 @@ async function saveSession() {
         angle: parseFloat(state.unsavedResults.angle.toFixed(1)),
         duration: parseFloat(state.unsavedResults.duration.toFixed(2)),
         created_at: new Date().toISOString(),
-        device: navigator.userAgent.substring(0, 100)
+        device: navigator.userAgent.substring(0, 100),
+        session_id: state.sessionId
       }]);
-    
+
     if (error) throw error;
-    
+
     elements.status.textContent = `Zapisano: ${state.unsavedResults.time.toFixed(2)}s (${state.unsavedResults.angle.toFixed(1)}°)`;
     state.unsavedResults = null;
   } catch (error) {
