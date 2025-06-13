@@ -119,7 +119,7 @@ function resetSession() {
 }
 
 /**
- * Zapisuje wyniki
+ * Zapisuje wyniki do bazy danych
  */
 async function saveSession() {
   if (!state.unsavedResults) {
@@ -127,14 +127,28 @@ async function saveSession() {
     return;
   }
 
+  elements.saveBtn.disabled = true;
+  elements.status.textContent = "Zapisywanie...";
+  
   try {
-    await saveResultToSupabase(state.unsavedResults.duration);
+    const { error } = await supabase
+      .from('wheelie_results')
+      .insert([{
+        nickname: state.nickname,
+        angle: parseFloat(state.unsavedResults.angle.toFixed(1)),
+        duration: parseFloat(state.unsavedResults.duration.toFixed(2)),
+        created_at: new Date().toISOString(),
+        device: navigator.userAgent.substring(0, 100)
+      }]);
+    
+    if (error) throw error;
+    
     elements.status.textContent = `Zapisano: ${state.unsavedResults.time.toFixed(2)}s (${state.unsavedResults.angle.toFixed(1)}°)`;
-    elements.saveBtn.disabled = true;
     state.unsavedResults = null;
   } catch (error) {
+    elements.saveBtn.disabled = false;
+    elements.status.textContent = `Błąd zapisu: ${error.message}`;
     console.error("Błąd zapisu:", error);
-    elements.status.textContent = "Błąd podczas zapisywania!";
   }
 }
 
@@ -331,5 +345,5 @@ function saveSettings() {
   localStorage.setItem('wheelieMeterCalibration', state.calibrationOffset.toString());
 }
 
-// Inicjalizacja
+// Inicjalizacja aplikacji
 document.addEventListener('DOMContentLoaded', init);
