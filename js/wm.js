@@ -4,9 +4,9 @@ import supabase from './common/supabase.js';
  * Konfiguracja aplikacji
  */
 const config = { 
-  wheelieThreshold: 20, 
-  dangerThreshold: 45, 
-  updateInterval: 100 
+  wheelieThreshold: 5, 
+  dangerThreshold: 30, 
+  updateInterval: 50 
 };
 
 /**
