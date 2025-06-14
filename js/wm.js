@@ -24,6 +24,7 @@ const state = {
   measurements: [],
   isLightMode: false,
   unsavedResults: null,
+  wheelieAngles: [],
   sessionId: generateSessionId()
 };
 
@@ -294,8 +295,10 @@ function checkWheelie(angle) {
       state.isWheelie = true;
       state.startTime = Date.now();
       state.maxAngle = angle;
+      state.wheelieAngles = [angle]; // Inicjalizacja tablicy
     } else {
       state.maxAngle = Math.max(state.maxAngle, angle);
+      state.wheelieAngles.push(angle); // Dodajemy kolejny kąt
     }
   } else {
     if (state.isWheelie) {
@@ -312,8 +315,12 @@ function endWheelie() {
   const endTime = Date.now();
   const duration = (endTime - state.startTime) / 1000;
   
+  // Oblicz średni kąt z wszystkich pomiarów podczas tego wheelie
+  const avgAngle = state.wheelieAngles.reduce((sum, a) => sum + a, 0) / state.wheelieAngles.length;
+  
   const measurement = {
     angle: state.maxAngle,
+    avgAngle: avgAngle, // Dodajemy średni kąt
     time: duration,
     date: new Date().toLocaleTimeString(),
     duration: duration
@@ -323,7 +330,10 @@ function endWheelie() {
   state.unsavedResults = measurement;
   updateHistory(measurement);
   
-  elements.status.textContent = `Wheelie: ${duration.toFixed(2)}s (${state.maxAngle.toFixed(1)}°)`;
+  // Resetujemy tablicę kątów dla następnego wheelie
+  state.wheelieAngles = [];
+  
+  elements.status.textContent = `Wheelie: ${duration.toFixed(2)}s (max: ${state.maxAngle.toFixed(1)}°, avg: ${avgAngle.toFixed(1)}°)`;
   elements.saveBtn.disabled = false;
 
   // Krótka blokada przed następnym wheelie
@@ -331,7 +341,6 @@ function endWheelie() {
   setTimeout(() => {
     state.isMeasuring = true;
   }, 1000);
-
 }
 
 /**
@@ -339,7 +348,14 @@ function endWheelie() {
  */
 function updateHistory(measurement) {
   const entry = document.createElement('div');
-  entry.textContent = `${measurement.date}: ${measurement.time.toFixed(2)}s (${measurement.angle.toFixed(1)}°)`;
+  entry.innerHTML = `
+    <div class="history-entry">
+      <span class="history-time">${measurement.date}</span>
+      <span class="history-duration">${measurement.duration.toFixed(2)}s</span>
+      <span class="history-max-angle">${measurement.angle.toFixed(1)}°</span>
+      <span class="history-avg-angle">${measurement.avgAngle.toFixed(1)}°</span>
+    </div>
+  `;
   elements.history.insertBefore(entry, elements.history.firstChild);
 }
 
