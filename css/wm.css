@@ -166,3 +166,28 @@ button:active {
   font-size: 0.9rem;
   color: var(--warning-color);
 }
+
+.history-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-entry span {
+  flex: 1;
+  text-align: center;
+}
+
+/* Nagłówki kolumn (dodaj w HTML) */
+.history-headers {
+  display: flex;
+  font-weight: bold;
+  padding: 8px 0;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.history-headers span {
+  flex: 1;
+  text-align: center;
+}
