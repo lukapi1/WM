@@ -123,14 +123,28 @@ button:active {
 }
 
 #history {
+  width: 100%;
+  border-collapse: collapse; /* Usuwa podwójne obramowania */
   margin-top: 10px;
-  text-align: left;
-  max-height: 120px;
-  overflow-y: auto;
   background-color: var(--history-bg);
   border-radius: 10px;
-  padding: 10px;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden; /* Dla zaokrąglonych rogów */
+}
+
+#history th, #history td {
+  padding: 8px 12px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#history th {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: bold;
+}
+
+#history tbody tr:last-child td {
+  border-bottom: none; /* Usuwa linię pod ostatnim wierszem */
 }
 
 .warning {
